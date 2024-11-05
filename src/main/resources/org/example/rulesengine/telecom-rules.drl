@@ -1,0 +1,48 @@
+package org.example.rulesengine
+import org.example.rulesengine.Event
+
+declare Event
+    @role( event )
+    @timestamp( timestamp )
+end
+
+// Severity Levels --> 1 = Low, 2 = Medium, 3 = High, 4 = Critical
+
+rule "Detect Critical Fault"
+when
+    $e: Event(eventType == "Fault", severity == 4)
+then
+    System.out.println("Critical Fault Detected: " + $e.getMessage());
+end
+
+rule "Multiple Faults from Same Source"
+when
+    $e1: Event(eventType == "Fault", $source: source)
+    $e2: Event(eventType == "Fault", source == $source, this != $e1)
+    over window:time(5m)
+then
+    System.out.println("Multiple faults detected from source: " + $source);
+end
+
+rule "Escalating Severity"
+when
+    $e1: Event($source: source, $sev: severity)
+    $e2: Event(source == $source, severity > $sev, this after[0s,1m] $e1)
+then
+    System.out.println("Escalating severity detected for source: " + $source);
+end
+
+rule "Repeated High Latency"
+when
+    $latencyEvent: Event(eventType == "Fault", message == "High Latency", severity >= 2)
+    $count: Number(intValue > 1) from accumulate(
+        Event(eventType == "Fault", message == "High Latency", severity >= 2, source == $latencyEvent.source)
+        over window:time(3m),
+        count()
+    )
+then
+    System.out.println("High latency detected repeatedly from source: " + $latencyEvent.getSource());
+end
+
+
+

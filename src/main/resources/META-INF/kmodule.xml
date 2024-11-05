@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kmodule xmlns="http://www.drools.org/xsd/kmodule">
+  <kbase name="rules" packages="org.example.rulesengine" eventProcessingMode="stream">
+    <ksession name="ksession-rules" default="true" clockType="pseudo"/>
+  </kbase>
+</kmodule>
